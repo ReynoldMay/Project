@@ -15,7 +15,7 @@ function App() {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "X-Access-Key": "$2a$10$d3kTCJ/WGqX.gtH.Ak6We.u07bFr/MKfOmhRZvbl.R14IKlcdT2qW", 
+            "X-Access-Key": "", 
           },
         });
 
