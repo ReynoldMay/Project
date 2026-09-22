@@ -55,13 +55,26 @@ function ArtistCard({ artist }) {
           <p>{artist.diedin}</p>
         </div>
       )}
+      
+      {artist.becameFamousPlace &&( 
+        <div classname= "becameFamousPlace">
+          <h3>Became Famous place</h3>
+          <p>{artist.becameFamousPlace}</p>
+        </div>
+        
+      )}
+      
       {artist.deathReason && (
-        <p className="death-reason">Cause: {artist.deathReason}</p>
+        <div className="death-reason">
+          <h3>Cause</h3>
+          <p>{artist.deathReason}</p>
+        </div>
       )}
       {artist.livedIn && (
         <div className="lived-in">
           <h3>Lived In</h3>
           <p>{artist.livedIn}</p>
+          
         </div>
       )}
     </article>
