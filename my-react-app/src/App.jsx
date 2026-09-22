@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ArtistCard from "./ArtistCard.jsx";
 
+
 function App() {
   const [artistData, setArtistData] = useState([]);
   const [application, setApplication] = useState("loading");
@@ -9,7 +10,7 @@ function App() {
   useEffect(() => {
     const fetchArtist = async function () {
       try {
-        const binUrl = "https://api.jsonbin.io/v3/b/6ab07b97ac6210605ae41a49";
+        const binUrl = "https://api.jsonbin.io/v3/b/6ab1d3f3ffd5d16053214899";
 
         const response = await fetch(binUrl, {
           method: "GET",
