@@ -1,38 +1,76 @@
-function ArtistCard({ artist }) {
+import ArtistImage from "./ArtistImage.jsx";
+import { FaHeart } from "react-icons/fa";
+import { SlHeart } from "react-icons/sl";
+
+function ArtistCard({ artist, saved, onToggleSaved }) {
+  const {
+    Name: name,
+    Genre: genre,
+    BirthDate: birthDate,
+    DeathDate: deathDate,
+    ImageUrl: imageUrl,
+    GifUrl: gifUrl,
+    IsIncarcerated: isIncarcerated,
+    StatusText: statusText,
+  } = artist;
   let statusTemplate, timelineLabel, timelineText;
 
-  const deathDate = artist.DeathDate ??artist.deathDate;
-  const birthDate = artist.BirthDate ?? artist.birthDate;
-  const imageUrl = artist.ImageUrl ?? artist.imageUrl ?? artist.image ?? artist.Image ?? artist.photo ?? artist.Photo ?? artist.img ?? artist.Img;
-  const gifUrl = artist.GifUrl ?? artist.gifUrl;
-  const name = artist.Name ?? artist.name;
-  const genre = artist.Genre ?? artist.genre;
 
   if (deathDate) {
-    statusTemplate = "Legacy"
+    statusTemplate = "Legacy";
     timelineLabel = "Died";
     timelineText = deathDate;
-  } else if (artist.IsIncarcerated ?? artist.isIncarcerated) {
+  } else if (isIncarcerated) {
     statusTemplate = "Incarcerated";
     timelineLabel = "Status";
-    timelineText = artist.statusText ?? "Incarcerated";
+    timelineText = statusText ?? "Incarcerated";
   } else {
     statusTemplate = "Active";
-    timelineLabel = artist.statusText ? "Status" : "Today";
-    timelineText = artist.statusText ?? "Still making music";
+    timelineLabel = statusText ? "Status" : "Today";
+    timelineText = statusText ?? "Still making music";
   }
 
   const locationParts = [artist.City, artist.State, artist.Country].filter(Boolean).join(", ");
-  const currentLocationParts = [artist.CurrentCity, artist.CurrentState, artist.CurrentCountry].filter(Boolean).join(", ");
-
+ const currentLocationParts = [
+  artist.CurrentCity,
+  artist.CurrentState,
+  artist.CurrentCountry,
+]
+  .filter(Boolean)
+  .join(", ");
+  
+    
   return (
     <article className="artist-card">
       <div className={`artist-media ${gifUrl ? "has-gif" : ""}`}>
-        {imageUrl && <img src={imageUrl} alt={`${name ?? "Artist"} portrait`} />}
-        {gifUrl && <img className="artist-gif" src={gifUrl} alt={`${name ?? "Artist"} tribute GIF`} />}
+        {imageUrl && (
+          <ArtistImage
+            src={imageUrl}
+            alt={`${name ?? "Artist"} portrait`}
+          />
+        )}
+
+        {gifUrl && (
+          <ArtistImage
+            src={gifUrl}
+            alt={`${name ?? "Artist"} tribute GIF`}
+            className="artist-gif"
+          />
+        )}
+
         <span className={deathDate ? "status status-past" : "status"}>
           {statusTemplate}
         </span>
+
+        <button
+          type="button"
+          className="heart-btn"
+          onClick={onToggleSaved}
+          aria-pressed={saved}
+          aria-label={saved ? `Remove ${name} from saved` : `Save ${name}`}
+        >
+          {saved ? <FaHeart color="red" size={20} /> : <SlHeart size={20} />}
+        </button>
       </div>
 
       <div className="artist-content">
@@ -67,17 +105,17 @@ function ArtistCard({ artist }) {
           </div>
         )}
 
-        {artist.BecameFamousIn && (
+        {artist.Gotfamouswhen && (
           <div className="impact">
-            <h3>Became Famous In</h3>
-            <p>{artist.BecameFamousIn}</p>
+            <h3>Got Famous When</h3>
+            <p>{artist.Gotfamouswhen}</p>
           </div>
         )}
 
-        {artist.BecameFamousPlace && (
+        {artist.Gotfamoushere && (
           <div className="impact">
-            <h3>Became Famous Place</h3>
-            <p>{artist.BecameFamousPlace}</p>
+            <h3>Got Famous Here</h3>
+            <p>{artist.Gotfamoushere}</p>
           </div>
         )}
 

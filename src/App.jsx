@@ -1,80 +1,91 @@
 import { useState, useEffect } from "react";
 import ArtistCard from "./ArtistCard.jsx";
+import localArtists from "./Artist.js";
+import styles from "./ArtistDirectory.module.css";
+
 function App() {
   const [artistData, setArtistData] = useState([]);
   const [application, setApplication] = useState("loading");
   const [errorMessage, setErrorMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [savedArtistId, setSavedArtistId] = useState(
+    JSON.parse(localStorage.getItem("ArtistId")) || []
+  );
+  const [showSaved, setShowSaved] = useState(false);
 
   useEffect(() => {
-    const fetchArtist = async function () {
+    const loadArtists = async () => {
       try {
-        const binUrl = "https://api.jsonbin.io/v3/b/6abb1aebac6210605a004239";
-        const binUrl_2 = "https://api.jsonbin.io/v3/b/6abb1afaffd5d1605339e0b8";
-
+        const binUrl= 'https://api.jsonbin.io/v3/b/6ad699d4ffd5d160537a41d1';
         const response = await fetch(binUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "X-Access-Key": "$2a$10$mlPP20HC0JSy7hPSU4lo7uBqRPlIAAXRr3rwfiss1VocEePgVAo2W",
+            "X-Access-Key":'$2a$10$mlPP20HC0JSy7hPSU4lo7uBqRPlIAAXRr3rwfiss1VocEePgVAo2W'
           },
         });
-        const response_1 = await fetch(binUrl_2, {
+        const binUrl_1= 'https://api.jsonbin.io/v3/b/6abb1afaffd5d1605339e0b8';
+        const response_1 = await fetch(binUrl_1, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "X-Access-Key": "$2a$10$mlPP20HC0JSy7hPSU4lo7uBqRPlIAAXRr3rwfiss1VocEePgVAo2W",
+            "X-Access-Key": '$2a$10$mlPP20HC0JSy7hPSU4lo7uBqRPlIAAXRr3rwfiss1VocEePgVAo2W'
           },
         });
 
-        if (!response.ok || !response_1.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.message || "This is Not yours");
-        }
+        if (!response.ok) throw new Error(`Request failed (${response.status})`);
+        if (!response_1.ok) throw new Error(`Request failed (${response_1.status})`);
 
         const data = await response.json();
         const data_1 = await response_1.json();
-
         setArtistData([...data.record, ...data_1.record]);
-        setApplication("success");
       } catch (error) {
-        console.error("Error fetching artist data:", error);
-        setErrorMessage("This is Not yours");
-        setApplication("error");
+        setErrorMessage(`${error.message}. Showing saved local data instead.`);
+        setArtistData(localArtists);
+      } finally {
+        setApplication("success");
       }
     };
 
-    fetchArtist();
+    loadArtists();
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("ArtistId", JSON.stringify(savedArtistId));
+  }, [savedArtistId]);
+
+  const toggleSaved = (id) => {
+    setSavedArtistId((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const search = searchTerm.toLowerCase();
   const filteredArtists = artistData.filter((artist) => {
-    const search = searchTerm.toLowerCase();
-    return (
-      (artist.Name ?? artist.Name)?.toLowerCase().includes(search) ||
-      (artist.Genre ?? artist.Genre)?.toLowerCase().includes(search) ||
-      artist.Title?.toLowerCase().includes(search) ||
-      artist.City?.toLowerCase().includes(search) ||
-      artist.State?.toLowerCase().includes(search) ||
-      artist.Country?.toLowerCase().includes(search)||
-      artist.CurrentCity?.toLowerCase().includes(search) ||
-      artist.CurrentState?.toLowerCase().includes(search) ||
-      artist.CurrentCountry?.toLowerCase().includes(search)||
-      artist.Impact?.toLowerCase().includes(search) ||
-      (artist.BirthDate ?? artist.BirthDate)?.toLowerCase().includes(search) ||
-      (artist.DeathDate ?? artist.DeathDate)?.toLowerCase().includes(search)
-      
+    const id = artist.Id ?? artist.Name;
+    const fields = [
+      artist.Name,
+      artist.Genre,
+      artist.Title,
+      artist.City,
+      artist.State,
+      artist.Country,
+      artist.CurrentCity,
+      artist.CurrentState,
+      artist.CurrentCountry,
+      artist.Impact,
+      artist.BirthDate,
+      artist.DeathDate,
+    ];
+    const matchesSearch = fields.some((field) =>
+      String(field ?? "").toLowerCase().includes(search)
     );
+    const matchesSaved = !showSaved || savedArtistId.includes(id);
+    return matchesSearch && matchesSaved;
   });
-  
 
-  if (application === "loading") return <p>Fetching artists…</p>;
-
-  if (application === "error") {
-    return (
-      <p style={{ color: "black", fontWeight: "bold" }}>
-        {errorMessage}
-      </p>
-    );
+  if (application === "loading") {
+    return <p className={styles.statusMessage}>Loading artists…</p>;
   }
 
   return (
@@ -82,22 +93,59 @@ function App() {
       <header className="artist-header">
         <h1>Artist Directory</h1>
         <div className="search-container">
+          <label className={styles.searchLabel} htmlFor="artist-search">
+            Search the directory
+          </label>
           <input
+            id="artist-search"
+            className={styles.searchInput}
             type="text"
-            placeholder="Search artists, genres, or locations,Title,Name BirthDate, Impact, Current City, Current State, Current Country,State,City..."
+            placeholder="Name, genre, or location"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <div className={styles.directoryControls}>
+          <p className={styles.resultCount} aria-live="polite">
+            {filteredArtists.length}{" "}
+            {filteredArtists.length === 1 ? "artist" : "artists"}
+          </p>
+          <button
+            type="button"
+            className={`${styles.savedToggle} ${showSaved ? styles.savedToggleActive : ""}`}
+            onClick={() => setShowSaved((prev) => !prev)}
+            aria-pressed={showSaved}
+          >
+            {showSaved
+              ? "Show all artists"
+              : `Saved artists (${savedArtistId.length})`}
+          </button>
+        </div>
       </header>
-      <section className="artist-grid">
-  {filteredArtists.map((artist, index) => (
-    <ArtistCard 
-      key={artist.id ?? artist.Id ?? `artist-${index}`} 
-      artist={artist} 
-    />
-  ))}
-</section>
+
+      {errorMessage && <p className={styles.statusMessage}>{errorMessage}</p>}
+
+      {filteredArtists.length > 0 ? (
+        <section className="artist-grid" aria-label="Artists">
+          {filteredArtists.map((artist) => {
+            const id = artist.Id ?? artist.Name;
+            return (
+              <ArtistCard
+                key={id}
+                artist={artist}
+                saved={savedArtistId.includes(id)}
+                onToggleSaved={() => toggleSaved(id)}
+              />
+            );
+          })}
+        </section>
+      ) : (
+        <p className={styles.emptyState}>
+          {showSaved && savedArtistId.length === 0
+            ? "No saved artists, click a heart to show who you like."
+            : "No artists match your search. Try another name, genre, or location."}
+        </p>
+      )}
     </main>
   );
 }
